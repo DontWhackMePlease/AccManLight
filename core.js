@@ -3,7 +3,7 @@
 // The snapshot comes from the main application (accounts with their balances, third parties, categories);
 // the transactions entered here wait in the storage (pending) until the main application writes them.
 
-export const VERSION = "0.74.5";  // shown in the settings: to check which version the phone runs
+export const VERSION = "0.75.1";  // shown in the settings: to check which version the phone runs
 
 export const EXPENSE = "EXPENSE", INCOME = "INCOME", TRANSFER = "TRANSFER";
 export const INVESTMENT = "INVESTMENT";

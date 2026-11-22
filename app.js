@@ -1,6 +1,6 @@
 // Account Manager Light — the page: Supabase (sign in, storage), the three screens, the settings.
-import * as core from "./core.js?v=0.74.5";
-import { EXPENSE, INCOME, TRANSFER, t as text } from "./core.js?v=0.74.5";
+import * as core from "./core.js?v=0.75.1";
+import { EXPENSE, INCOME, TRANSFER, t as text } from "./core.js?v=0.75.1";
 
 const BUCKET = "account-manager";
 const store = {  // what the phone keeps between two visits
