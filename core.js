@@ -191,6 +191,17 @@ export function visibleRows(rows, folded) {
   return rows.filter((row) => !row.ancestors.some((id) => folded.has(id)));
 }
 
+/** Total of a banking institution: the consolidated balances of its real accounts, by currency. */
+export function groupTotals(group, balances) {
+  const totals = new Map();
+  for (const { account } of group.rows) {
+    if (account.parent_id == null) {
+      totals.set(account.currency, (totals.get(account.currency) ?? 0) + balances.get(account.id).consolidated);
+    }
+  }
+  return totals;
+}
+
 /** Folded at first: every account with sub-accounts (the phone shows the real accounts first). */
 export function initiallyFolded(snapshot) {
   const parents = new Set((snapshot?.accounts ?? []).filter((a) => a.parent_id != null).map((a) => a.parent_id));

@@ -219,6 +219,27 @@ function foldedAccounts() {
   return new Set(kept ?? core.initiallyFolded(state.snapshot));
 }
 
+/** Banking institutions folded on the balances screen: only their header and their total show. */
+function foldedInstitutions() {
+  return new Set(store.get("foldedGroups", []));
+}
+
+function toggleGroup(institution) {
+  const folded = foldedInstitutions();
+  if (folded.has(institution)) folded.delete(institution); else folded.add(institution);
+  store.set("foldedGroups", [...folded]);
+  render();
+}
+
+function groupHeader(group, balances, isFolded) {
+  const totals = core.groupTotals(group, balances);
+  return h("h2", { class: "group-head", role: "button", "aria-expanded": String(!isFolded),
+                   onclick: () => toggleGroup(group.institution) },
+    h("span", {}, h("span", { class: "chevron" }, isFolded ? "▸" : "▾"), group.institution || "—"),
+    isFolded ? h("span", { class: "group-total" },
+      [...totals].map(([currency, cents]) => money(cents, currency)).join(" · ")) : null);
+}
+
 function toggle(accountId) {
   const folded = foldedAccounts();
   if (folded.has(accountId)) folded.delete(accountId); else folded.add(accountId);
@@ -230,6 +251,7 @@ function balancesScreen() {
   const snap = state.snapshot;
   if (!snap) return h("p", { class: "empty" }, t("noSnapshot"));
   const folded = foldedAccounts();
+  const foldedGroups = foldedInstitutions();
   const pending = [...state.waiting, ...state.outbox];
   const balances = core.adjustedBalances(snap, pending);
   const count = core.stillWaiting(snap, pending).length;
@@ -240,9 +262,9 @@ function balancesScreen() {
   return h("div", {},
     h("p", { class: "as-of" }, t("asOf", { date: new Date(snap.generated_at).toLocaleString(lang()) }),
       count ? h("span", { class: "badge" }, " · " + t("withWaiting", { count })) : null),
-    core.accountTree(snap).map((group) => h("section", { class: "group" },
-      group.institution ? h("h2", {}, group.institution) : h("h2", {}, "—"),
-      core.visibleRows(group.rows, folded).map(({ account, depth, hasChildren }) => {
+    core.accountTree(snap).map((group) => h("section", { class: `group${foldedGroups.has(group.institution) ? " folded" : ""}` },
+      groupHeader(group, balances, foldedGroups.has(group.institution)),
+      foldedGroups.has(group.institution) ? null : core.visibleRows(group.rows, folded).map(({ account, depth, hasChildren }) => {
         const b = balances.get(account.id);
         const shown = b.consolidated;  // with its sub-accounts; its own balance below when different
         const isFolded = folded.has(account.id);
