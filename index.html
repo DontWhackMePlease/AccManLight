@@ -71,12 +71,13 @@
   .small { border: 1px solid #cfd7e0; background: #fff; border-radius: 8px; padding: 4px 10px; font-size: 13px; color: var(--ink); }
   .warn { color: #b26a00; } .error-text { color: var(--red); } h2.refused { color: var(--red) !important; }
   .comment { font-style: italic; }
+  .version { color: var(--muted); font-size: 12px; text-align: center; margin: 8px 0 0; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script type="module">
-  import { start } from "./app.js";
+  import { start } from "./app.js?v=0.74.5";  // the version in the address: a new one is always fetched
   start();
 </script>
 </body>

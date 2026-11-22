@@ -3,6 +3,8 @@
 // The snapshot comes from the main application (accounts with their balances, third parties, categories);
 // the transactions entered here wait in the storage (pending) until the main application writes them.
 
+export const VERSION = "0.74.5";  // shown in the settings: to check which version the phone runs
+
 export const EXPENSE = "EXPENSE", INCOME = "INCOME", TRANSFER = "TRANSFER";
 export const INVESTMENT = "INVESTMENT";
 
@@ -23,7 +25,7 @@ export const TEXTS = {
     removeConfirm: "Delete this transaction?", nothingWaiting: "Nothing is waiting.",
     project: "Supabase project URL", anonKey: "Publishable key", email: "E-mail", password: "Password",
     signIn: "Sign in", signOut: "Sign out", signedInAs: "Signed in as {email}.", language: "Language",
-    auto: "As the main application", refresh: "Refresh", loading: "Loading…",
+    auto: "As the main application", refresh: "Refresh", version: "Version {version}", loading: "Loading…",
     setupFirst: "Set up the connection first (Settings).",
     errAmount: "Type an amount greater than zero.", errAccount: "Choose the account.",
     errAccounts: "Choose two different accounts.", errCurrency: "A transfer between two currencies is not possible here.",
@@ -46,7 +48,7 @@ export const TEXTS = {
     removeConfirm: "Supprimer cette transaction ?", nothingWaiting: "Rien n'est en attente.",
     project: "URL du projet Supabase", anonKey: "Clé publishable", email: "E-mail", password: "Mot de passe",
     signIn: "Se connecter", signOut: "Se déconnecter", signedInAs: "Connecté en tant que {email}.", language: "Langue",
-    auto: "Comme l'application principale", refresh: "Actualiser", loading: "Chargement…",
+    auto: "Comme l'application principale", refresh: "Actualiser", version: "Version {version}", loading: "Chargement…",
     setupFirst: "Configurez d'abord la connexion (Réglages).",
     errAmount: "Saisissez un montant supérieur à zéro.", errAccount: "Choisissez le compte.",
     errAccounts: "Choisissez deux comptes différents.", errCurrency: "Un virement entre deux devises n'est pas possible ici.",

@@ -1,6 +1,6 @@
 // Account Manager Light — the page: Supabase (sign in, storage), the three screens, the settings.
-import * as core from "./core.js";
-import { EXPENSE, INCOME, TRANSFER, t as text } from "./core.js";
+import * as core from "./core.js?v=0.74.5";
+import { EXPENSE, INCOME, TRANSFER, t as text } from "./core.js?v=0.74.5";
 
 const BUCKET = "account-manager";
 const store = {  // what the phone keeps between two visits
@@ -398,7 +398,8 @@ function settingsScreen() {
       : [h("label", {}, h("span", {}, t("email")), h("input", { id: "email", type: "email", autocomplete: "username", value: c.email ?? "" })),
          h("label", {}, h("span", {}, t("password")), h("input", { id: "password", type: "password",
                                                                 autocomplete: "current-password" })),
-         h("button", { type: "submit", class: "primary" }, t("signIn"))]);
+         h("button", { type: "submit", class: "primary" }, t("signIn"))],
+    h("p", { class: "version" }, t("version", { version: core.VERSION })));
 }
 
 export function render() {
@@ -423,7 +424,21 @@ export function start() {
   if (client()) refresh();
   else { state.screen = "settings"; render(); }
   window.addEventListener("online", () => client() && refresh());
-  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js");
+  const secure = location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname);
+  if ("serviceWorker" in navigator && secure) {
+    // A new version of the page: checked at each opening and when the app comes back to the front; once it
+    // is in place, the page reloads itself on it.
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((registration) => {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") { registration.update(); if (client()) refresh(); }
+      });
+    });
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (hadController && !reloaded) { reloaded = true; location.reload(); }
+    });
+  }
 }
 
 export { state };

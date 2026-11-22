@@ -1,5 +1,7 @@
 // The page works without network: its files are kept on the phone (the data go through app.js).
-const CACHE = "am-light-1";
+// Releasing a version: change VERSION in core.js and the ?v= of index.html and app.js (a test checks they
+// agree), and the name of CACHE below.
+const CACHE = "am-light-2";
 const FILES = ["./", "index.html", "app.js", "core.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -15,9 +17,11 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.origin !== location.origin) return;  // Supabase: not touched
-  event.respondWith(fetch(event.request).then((answer) => {
+  // "no-cache": the server is asked whether the file changed (a short answer when it did not), so a new
+  // version is taken at once instead of the copy the browser keeps for 10 minutes.
+  event.respondWith(fetch(event.request, { cache: "no-cache" }).then((answer) => {
     const copy = answer.clone();
     caches.open(CACHE).then((cache) => cache.put(event.request, copy));
     return answer;
-  }).catch(() => caches.match(event.request)));
+  }).catch(() => caches.match(event.request, { ignoreSearch: true })));
 });
