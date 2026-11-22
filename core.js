@@ -175,14 +175,26 @@ export function accountTree(snapshot) {
     const key = a.institution || "";
     if (!groups.has(key)) groups.set(key, []);
     const rows = groups.get(key);
-    const add = (account, depth) => {
-      rows.push({ account, depth });
-      for (const child of children.get(account.id) ?? []) add(child, depth + 1);
+    const add = (account, depth, ancestors) => {
+      const kids = children.get(account.id) ?? [];
+      rows.push({ account, depth, ancestors, hasChildren: kids.length > 0 });
+      for (const child of kids) add(child, depth + 1, [...ancestors, account.id]);
     };
-    add(a, 0);
+    add(a, 0, []);
   }
   return [...groups.entries()].sort(([a], [b]) => (a === "" ? 1 : b === "" ? -1 : a.localeCompare(b)))
     .map(([institution, rows]) => ({ institution, rows }));
+}
+
+/** The rows to show: those under a folded account are hidden (folded: a set of account ids). */
+export function visibleRows(rows, folded) {
+  return rows.filter((row) => !row.ancestors.some((id) => folded.has(id)));
+}
+
+/** Folded at first: every account with sub-accounts (the phone shows the real accounts first). */
+export function initiallyFolded(snapshot) {
+  const parents = new Set((snapshot?.accounts ?? []).filter((a) => a.parent_id != null).map((a) => a.parent_id));
+  return [...parents];
 }
 
 /** Accounts offered for a kind of transaction: open, real ones for an income or an expense. */

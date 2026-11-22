@@ -213,9 +213,23 @@ const h = (tag, attributes = {}, ...children) => {
   return node;
 };
 
+/** Accounts folded on the balances screen (kept on the phone). */
+function foldedAccounts() {
+  const kept = store.get("folded");
+  return new Set(kept ?? core.initiallyFolded(state.snapshot));
+}
+
+function toggle(accountId) {
+  const folded = foldedAccounts();
+  if (folded.has(accountId)) folded.delete(accountId); else folded.add(accountId);
+  store.set("folded", [...folded]);
+  render();
+}
+
 function balancesScreen() {
   const snap = state.snapshot;
   if (!snap) return h("p", { class: "empty" }, t("noSnapshot"));
+  const folded = foldedAccounts();
   const pending = [...state.waiting, ...state.outbox];
   const balances = core.adjustedBalances(snap, pending);
   const count = core.stillWaiting(snap, pending).length;
@@ -228,11 +242,17 @@ function balancesScreen() {
       count ? h("span", { class: "badge" }, " · " + t("withWaiting", { count })) : null),
     core.accountTree(snap).map((group) => h("section", { class: "group" },
       group.institution ? h("h2", {}, group.institution) : h("h2", {}, "—"),
-      group.rows.map(({ account, depth }) => {
+      core.visibleRows(group.rows, folded).map(({ account, depth, hasChildren }) => {
         const b = balances.get(account.id);
         const shown = b.consolidated;  // with its sub-accounts; its own balance below when different
-        return h("div", { class: `row depth${Math.min(depth, 3)}${account.open ? "" : " closed"}` },
-          h("span", { class: "name" }, account.name),
+        const isFolded = folded.has(account.id);
+        return h("div", {
+          class: `row depth${Math.min(depth, 3)}${account.open ? "" : " closed"}${hasChildren ? " node" : ""}`,
+          onclick: hasChildren ? () => toggle(account.id) : null,
+          role: hasChildren ? "button" : null, "aria-expanded": hasChildren ? String(!isFolded) : null,
+        },
+          h("span", { class: "name" },
+            h("span", { class: "chevron" }, hasChildren ? (isFolded ? "▸" : "▾") : ""), account.name),
           h("span", { class: `amount${shown < 0 ? " negative" : ""}` }, money(shown, account.currency)),
           b.balance !== b.consolidated ? h("span", { class: "own" }, money(b.balance, account.currency)) : null);
       }))),

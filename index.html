@@ -39,7 +39,11 @@
              margin: 0; padding: 10px 14px 4px; font-weight: 600; }
   .row { display: grid; grid-template-columns: 1fr auto; align-items: baseline; padding: 9px 14px; border-top: 1px solid var(--line); }
   .row .own { grid-column: 2; font-size: 12px; color: var(--muted); text-align: right; }
-  .row.depth1 .name { padding-left: 16px; } .row.depth2 .name { padding-left: 32px; } .row.depth3 .name { padding-left: 48px; }
+  .row .name { display: flex; align-items: baseline; }
+  .chevron { display: inline-block; width: 18px; flex: none; color: var(--muted); font-size: 13px; }
+  .row.node { cursor: pointer; -webkit-tap-highlight-color: rgba(44,111,183,.12); }
+  .row.node:active { background: #eef3fa; }
+  .row.depth1 .name { padding-left: 18px; } .row.depth2 .name { padding-left: 36px; } .row.depth3 .name { padding-left: 54px; }
   .row.depth1, .row.depth2, .row.depth3 { font-size: 15px; color: #3a4654; }
   .row.closed { opacity: .5; }
   .row.total { background: #fff; border-radius: 12px; font-weight: 700; border: 0; }
