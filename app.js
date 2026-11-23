@@ -419,7 +419,7 @@ export function render() {
   ].filter(Boolean));
 }
 
-const SPLASH_TIME = 1500;  // ms the start page stays at least, then it fades out (.6 s)
+const SPLASH_TIME = 3000;  // ms the start page stays at least, then it fades out (.6 s)
 
 function hideSplash(shownAt) {
   const splash = document.getElementById("splash");
