@@ -80,20 +80,23 @@
   .warn { color: var(--orange); } .error-text { color: var(--red); } h2.refused { color: var(--red) !important; }
   .comment { font-style: italic; }
   .version { color: var(--muted); font-size: 12px; text-align: center; margin: 8px 0 0; }
-  /* The start page: the picture over everything, then it fades out once the app is ready. */
-  #splash { position: fixed; inset: 0; z-index: 100; background: #0b1a2a url("splash.jpg") center / cover no-repeat;
-            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
-            padding-bottom: calc(48px + env(safe-area-inset-bottom)); transition: opacity 1s ease; }
+  /* The start page: over everything, on a dark backdrop that hides the app; the picture fades in (1.5 s),
+     then the whole page fades out (1.5 s) once its time is up. */
+  #splash { position: fixed; inset: 0; z-index: 100; background: #0b1a2a; transition: opacity 1.5s ease; }
   #splash.gone { opacity: 0; pointer-events: none; }
+  #splash .picture { position: absolute; inset: 0; background: url("splash.jpg") center / cover no-repeat;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            padding-bottom: calc(48px + env(safe-area-inset-bottom)); animation: splash-in 1.5s ease both; }
+  @keyframes splash-in { from { opacity: 0; } to { opacity: 1; } }
   #splash .name { color: #fff; font-size: 24px; font-weight: 600; letter-spacing: .5px; text-shadow: 0 2px 8px #000; }
   #splash .version { color: #cfd8e3; text-shadow: 0 1px 4px #000; }
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><div class="name">Account Manager Light</div><div class="version" id="splash-version"></div></div>
+<div id="splash" aria-hidden="true"><div class="picture"><div class="name">Account Manager Light</div><div class="version" id="splash-version"></div></div></div>
 <div id="app"></div>
 <script type="module">
-  import { start } from "./app.js?v=0.76.1";  // the version in the address: a new one is always fetched
+  import { start } from "./app.js?v=0.76.2";  // the version in the address: a new one is always fetched
   start();
 </script>
 </body>
