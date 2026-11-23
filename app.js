@@ -1,6 +1,6 @@
 // Account Manager Light — the page: Supabase (sign in, storage), the three screens, the settings.
-import * as core from "./core.js?v=0.75.1";
-import { EXPENSE, INCOME, TRANSFER, t as text } from "./core.js?v=0.75.1";
+import * as core from "./core.js?v=0.76.0";
+import { EXPENSE, INCOME, TRANSFER, t as text } from "./core.js?v=0.76.0";
 
 const BUCKET = "account-manager";
 const store = {  // what the phone keeps between two visits
@@ -419,8 +419,23 @@ export function render() {
   ].filter(Boolean));
 }
 
+const SPLASH_TIME = 1500;  // ms the start page stays at least, then it fades out (.6 s)
+
+function hideSplash(shownAt) {
+  const splash = document.getElementById("splash");
+  if (!splash) return;
+  const version = document.getElementById("splash-version");
+  if (version) version.textContent = core.VERSION;
+  setTimeout(() => {
+    splash.classList.add("gone");
+    setTimeout(() => splash.remove(), 700);
+  }, Math.max(0, SPLASH_TIME - (Date.now() - shownAt)));
+}
+
 export function start() {
+  const shownAt = performance.timeOrigin ? Math.round(performance.timeOrigin) : Date.now();
   render();
+  hideSplash(shownAt);
   if (client()) refresh();
   else { state.screen = "settings"; render(); }
   window.addEventListener("online", () => client() && refresh());

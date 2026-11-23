@@ -1,8 +1,8 @@
 // The page works without network: its files are kept on the phone (the data go through app.js).
 // Releasing a version: change VERSION in core.js and the ?v= of index.html and app.js (a test checks they
 // agree), and the name of CACHE below.
-const CACHE = "am-light-3";
-const FILES = ["./", "index.html", "app.js", "core.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "watermark.jpg"];
+const CACHE = "am-light-4";
+const FILES = ["./", "index.html", "app.js", "core.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "watermark.jpg", "splash.jpg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES)).then(() => self.skipWaiting()));
