@@ -1,6 +1,6 @@
 // Account Manager Light — the page: Supabase (sign in, storage), the three screens, the settings.
-import * as core from "./core.js?v=0.76.2";
-import { EXPENSE, INCOME, TRANSFER, t as text } from "./core.js?v=0.76.2";
+import * as core from "./core.js?v=0.77.0";
+import { EXPENSE, INCOME, TRANSFER, t as text } from "./core.js?v=0.77.0";
 
 const BUCKET = "account-manager";
 const store = {  // what the phone keeps between two visits
@@ -247,19 +247,43 @@ function toggle(accountId) {
   render();
 }
 
+/** The horizon of the balances shown: today, end of month or everything planned (kept on the phone). */
+function horizon() {
+  const kept = store.get("horizon");
+  return core.HORIZONS.includes(kept) ? kept : "today";
+}
+
+function setHorizon(value) {
+  store.set("horizon", value);
+  render();
+}
+
+function horizonSwitch(snap) {
+  const chosen = horizon();
+  const limit = core.horizonEnd(chosen);
+  const hint = chosen === "today" ? t("horizonToday")
+    : chosen === "month_end" ? t("horizonMonth", { date: core.formatDate(limit, lang()) }) : t("horizonForecast");
+  return h("div", { class: "horizon" },
+    h("div", { class: "kinds" }, core.HORIZONS.map((value) => h("button", {
+      type: "button", class: value === chosen ? "on" : "", onclick: () => setHorizon(value),
+    }, t(value)))),
+    h("p", { class: "as-of hint" }, core.hasHorizons(snap) ? hint : t("oldSnapshot")));
+}
+
 function balancesScreen() {
   const snap = state.snapshot;
   if (!snap) return h("p", { class: "empty" }, t("noSnapshot"));
   const folded = foldedAccounts();
   const foldedGroups = foldedInstitutions();
   const pending = [...state.waiting, ...state.outbox];
-  const balances = core.adjustedBalances(snap, pending);
+  const balances = core.adjustedBalances(snap, pending, horizon());
   const count = core.stillWaiting(snap, pending).length;
   const totals = new Map();
   for (const a of snap.accounts) {
     if (a.real) totals.set(a.currency, (totals.get(a.currency) ?? 0) + balances.get(a.id).consolidated);
   }
   return h("div", {},
+    horizonSwitch(snap),
     h("p", { class: "as-of" }, t("asOf", { date: new Date(snap.generated_at).toLocaleString(lang()) }),
       count ? h("span", { class: "badge" }, " · " + t("withWaiting", { count })) : null),
     core.accountTree(snap).map((group) => h("section", { class: `group${foldedGroups.has(group.institution) ? " folded" : ""}` },

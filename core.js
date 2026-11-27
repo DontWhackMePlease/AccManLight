@@ -3,9 +3,11 @@
 // The snapshot comes from the main application (accounts with their balances, third parties, categories);
 // the transactions entered here wait in the storage (pending) until the main application writes them.
 
-export const VERSION = "0.76.2";  // shown in the settings: to check which version the phone runs
+export const VERSION = "0.77.0";  // shown in the settings: to check which version the phone runs
 
 export const EXPENSE = "EXPENSE", INCOME = "INCOME", TRANSFER = "TRANSFER";
+// Horizons of the balances (snapshot of format 2): up to today, up to the end of the month, everything.
+export const HORIZONS = ["today", "month_end", "forecast"];
 export const INVESTMENT = "INVESTMENT";
 
 // ------------------------------------------------------------------ texts
@@ -17,6 +19,10 @@ export const TEXTS = {
     account: "Account", from: "From", to: "To", date: "Date", amount: "Amount", thirdParty: "Third party",
     category: "Category", comment: "Comment", save: "Save", none: "(none)", newThirdParty: "New name = new third party",
     asOf: "Balances of {date}", withWaiting: "with {count} transaction(s) waiting", total: "Total",
+    today: "Today", month_end: "End of month", forecast: "All planned",
+    horizonToday: "Up to today", horizonMonth: "Up to {date}, the end of the month",
+    horizonForecast: "With every future transaction",
+    oldSnapshot: "Update the main application to see the end of month and the forecast.",
     noSnapshot: "No balances yet: in the main application, File › Synchronize with the mobile app, then ⟳ here.",
     saved: "Saved: it will be written by the main application when it starts.",
     savedOffline: "Kept on the phone: it will be sent when the network is back.",
@@ -40,6 +46,10 @@ export const TEXTS = {
     category: "Catégorie", comment: "Commentaire", save: "Enregistrer", none: "(aucune)",
     newThirdParty: "Nouveau nom = nouveau tiers",
     asOf: "Soldes du {date}", withWaiting: "avec {count} transaction(s) en attente", total: "Total",
+    today: "Aujourd'hui", month_end: "Fin de mois", forecast: "Tout prévu",
+    horizonToday: "Jusqu'à aujourd'hui", horizonMonth: "Jusqu'au {date}, fin du mois",
+    horizonForecast: "Avec toutes les transactions à venir",
+    oldSnapshot: "Mettez à jour l'application principale pour voir la fin de mois et la prévision.",
     noSnapshot: "Pas encore de soldes : dans l'application principale, Fichier › Synchroniser avec l'appli mobile, puis ⟳ ici.",
     saved: "Enregistrée : elle sera écrite par l'application principale à son démarrage.",
     savedOffline: "Gardée sur le téléphone : elle sera envoyée au retour du réseau.",
@@ -139,19 +149,40 @@ export function stillWaiting(snapshot, transactions) {
   });
 }
 
+/** The last day a horizon counts (ISO date; null: no limit), from the day given (by default today). */
+export function horizonEnd(horizon, day = today()) {
+  if (horizon === "forecast") return null;
+  if (horizon === "month_end") {
+    const [year, month] = day.split("-").map(Number);
+    const last = new Date(Date.UTC(year, month, 0)).getUTCDate();  // day 0 of the next month
+    return `${year}-${String(month).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
+  }
+  return day;
+}
+
+/** Whether the snapshot has its balances at the three horizons (made by a main application of 0.93.0 on). */
+export function hasHorizons(snapshot) {
+  return (snapshot?.accounts ?? []).every((a) => a.balances && HORIZONS.every((h) => Array.isArray(a.balances[h])));
+}
+
 /**
- * Balances of the snapshot with the transactions waiting: {id: {balance, consolidated}}.
- * The own balance moves on the account of the transaction; the consolidated balance on it and on every
- * account above it (a transfer inside a family cancels out on their common accounts).
+ * Balances of the snapshot with the transactions waiting: {id: {balance, consolidated}}, at a horizon
+ * ("today" by default: up to today; "month_end"; "forecast": everything): the balances of the snapshot at
+ * that horizon, and the transactions waiting dated within it. The own balance moves on the account of the
+ * transaction; the consolidated balance on it and on every account above it (a transfer inside a family
+ * cancels out on their common accounts). A snapshot of format 1 has only one balance: used for all.
  */
-export function adjustedBalances(snapshot, transactions) {
-  const result = new Map((snapshot?.accounts ?? []).map((a) => [a.id, { balance: a.balance, consolidated: a.consolidated }]));
+export function adjustedBalances(snapshot, transactions, horizon = "today", day = today()) {
+  const base = (a) => (a.balances?.[horizon] ?? [a.balance, a.consolidated]);
+  const result = new Map((snapshot?.accounts ?? []).map((a) => [a.id, { balance: base(a)[0], consolidated: base(a)[1] }]));
+  const end = horizonEnd(horizon, day);
   const move = (accountId, amount) => {
     if (!result.has(accountId)) return;
     result.get(accountId).balance += amount;
     for (const id of chain(snapshot, accountId)) result.get(id).consolidated += amount;
   };
   for (const tx of stillWaiting(snapshot, transactions)) {
+    if (end && tx.date > end) continue;  // after the horizon
     if (tx.kind === EXPENSE) move(tx.source_account_id, -tx.amount);
     else if (tx.kind === INCOME) move(tx.dest_account_id, tx.amount);
     else if (tx.kind === TRANSFER) {

@@ -38,6 +38,8 @@
   .message.error { background: rgba(255,107,107,.16); color: var(--red); }
   .message.ok { background: rgba(111,207,122,.16); color: var(--green); }
   .as-of { color: var(--muted); font-size: 13px; margin: 4px 4px 10px; }
+  .horizon { margin: 2px 0 6px; }
+  .horizon .hint { margin: 6px 4px 0; font-size: 12px; }
   .badge { color: var(--orange); }
   .group { background: var(--card); border-radius: 12px; margin-bottom: 12px; overflow: hidden;
            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
@@ -96,7 +98,7 @@
 <div id="splash" aria-hidden="true"><div class="picture"><div class="name">Account Manager Light</div><div class="version" id="splash-version"></div></div></div>
 <div id="app"></div>
 <script type="module">
-  import { start } from "./app.js?v=0.76.2";  // the version in the address: a new one is always fetched
+  import { start } from "./app.js?v=0.77.0";  // the version in the address: a new one is always fetched
   start();
 </script>
 </body>
